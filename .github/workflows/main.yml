@@ -1,0 +1,42 @@
+name: CI Pipeline with Security Checks
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  security_checks:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'  # Use the version you need
+
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+        pip install bandit  # Install Bandit for security analysis
+
+    - name: Run Bandit Security Check
+      run: |
+        bandit -r . -f json -o bandit_report.json
+
+    - name: Upload Bandit Report
+      uses: actions/upload-artifact@v2
+      with:
+        name: bandit-report
+        path: bandit_report.json
+
+    - name: Store Bandit output in text file
+      run: |
+        cat bandit_report.json > bandit_output.txt
+        echo "Bandit security analysis saved as bandit_output.txt"
